@@ -1,2 +1,3 @@
 # they
-A UCI chess engine written in Zig.
+
+A UCI chess engine written in OCaml.
