@@ -21,12 +21,10 @@ func (cmd UCI) MarshalText() ([]byte, error) {
 }
 
 func (cmd UCI) UnmarshalText(text []byte) error {
-	text = bytes.TrimSpace(text)
-
-	if string(text) != "uci" {
+	b := bytes.TrimSpace(text)
+	if string(b) != "uci" {
 		return errors.New("not a uci command")
 	}
-
 	return nil
 }
 
