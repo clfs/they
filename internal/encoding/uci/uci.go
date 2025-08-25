@@ -19,11 +19,31 @@ func (cmd UCI) MarshalText() ([]byte, error) {
 	return []byte("uci"), nil
 }
 
+func (cmd UCI) UnmarshalText(text []byte) error {
+	text = bytes.TrimSpace(text)
+
+	if string(text) != "uci" {
+		return errors.New("not a uci command")
+	}
+
+	return nil
+}
+
 // IsReady represents an "isready" command.
 type IsReady struct{}
 
 func (cmd IsReady) MarshalText() ([]byte, error) {
 	return []byte("isready"), nil
+}
+
+func (cmd IsReady) UnmarshalText(text []byte) error {
+	text = bytes.TrimSpace(text)
+
+	if string(text) != "isready" {
+		return errors.New("not an isready command")
+	}
+
+	return nil
 }
 
 // SetOption represents a "setoption" command.
@@ -51,22 +71,14 @@ func (cmd UCINewGame) MarshalText() ([]byte, error) {
 	return []byte("ucinewgame"), nil
 }
 
-// PositionStartpos represents a "position startpos" command.
-type PositionStartpos struct {
-	Moves []string
-}
+func (cmd UCINewGame) UnmarshalText(text []byte) error {
+	text = bytes.TrimSpace(text)
 
-func (cmd PositionStartpos) MarshalText() ([]byte, error) {
-	b := bytes.NewBufferString("position startpos")
-
-	if len(cmd.Moves) > 0 {
-		fmt.Fprint(b, " moves")
-		for _, m := range cmd.Moves {
-			fmt.Fprintf(b, " %s", m)
-		}
+	if string(text) != "ucinewgame" {
+		return errors.New("not a ucinewgame command")
 	}
 
-	return b.Bytes(), nil
+	return nil
 }
 
 // Position represents a "position" command.
@@ -196,28 +208,25 @@ func (cmd Quit) MarshalText() ([]byte, error) {
 	return []byte("quit"), nil
 }
 
-// IDName represents an "id name" command.
-type IDName struct {
-	Name string
-}
-
-func (cmd IDName) MarshalText() ([]byte, error) {
-	b := bytes.NewBufferString("id name")
-
-	fmt.Fprintf(b, " %s", cmd.Name)
-
-	return b.Bytes(), nil
-}
-
-// IDAuthor represents an "id author" command.
-type IDAuthor struct {
+// ID represents an "id" command.
+type ID struct {
+	Name   string
 	Author string
 }
 
-func (cmd IDAuthor) MarshalText() ([]byte, error) {
-	b := bytes.NewBufferString("id author")
+func (cmd ID) MarshalText() ([]byte, error) {
+	b := bytes.NewBufferString("id")
 
-	fmt.Fprintf(b, " %s", cmd.Author)
+	if cmd.Name != "" {
+		fmt.Fprintf(b, " name %s", cmd.Name)
+	}
+
+	if cmd.Author != "" {
+		if cmd.Name != "" {
+			return nil, errors.New("cannot specify both author and name")
+		}
+		fmt.Fprintf(b, " author %s", cmd.Author)
+	}
 
 	return b.Bytes(), nil
 }
