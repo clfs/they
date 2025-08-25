@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -52,16 +53,13 @@ type SetOption struct {
 	Value string
 }
 
-func (cmd SetOption) MarshalText() ([]byte, error) {
-	b := bytes.NewBufferString("setoption")
-
-	fmt.Fprintf(b, " name %s", cmd.Name)
-
+func (cmd SetOption) MarshalText() (text []byte, err error) {
+	text = fmt.Append(text, "setoption")
+	text = fmt.Appendf(text, " name %s", cmd.Name)
 	if cmd.Value != "" {
-		fmt.Fprintf(b, " value %s", cmd.Value)
+		text = fmt.Appendf(text, " value %s", cmd.Value)
 	}
-
-	return b.Bytes(), nil
+	return
 }
 
 // UCINewGame represents a "ucinewgame" command.
@@ -88,28 +86,21 @@ type Position struct {
 	Moves    []string
 }
 
-func (cmd Position) MarshalText() ([]byte, error) {
-	b := bytes.NewBufferString("position")
-
+func (cmd Position) MarshalText() (text []byte, err error) {
+	text = fmt.Append(text, "position")
 	if cmd.Startpos {
-		fmt.Fprint(b, " startpos")
+		text = fmt.Append(text, " startpos")
 	}
-
 	if cmd.FEN != "" {
 		if cmd.Startpos {
 			return nil, errors.New("cannot specify both startpos and fen")
 		}
-		fmt.Fprintf(b, " fen %s", cmd.FEN)
+		text = fmt.Appendf(text, " fen %s", cmd.FEN)
 	}
-
 	if len(cmd.Moves) > 0 {
-		fmt.Fprint(b, " moves")
-		for _, m := range cmd.Moves {
-			fmt.Fprintf(b, " %s", m)
-		}
+		text = fmt.Appendf(text, " moves %s", strings.Join(cmd.Moves, " "))
 	}
-
-	return b.Bytes(), nil
+	return
 }
 
 // Go represents a "go" command.
@@ -128,63 +119,45 @@ type Go struct {
 	Infinite    bool
 }
 
-func (cmd *Go) MarshalText() ([]byte, error) {
-	b := bytes.NewBufferString("go")
-
-	// TODO(clfs): Determine which fields are incompatible.
-
+func (cmd *Go) MarshalText() (text []byte, err error) {
+	text = fmt.Append(text, "go")
 	if len(cmd.SearchMoves) > 0 {
-		fmt.Fprint(b, " searchmoves")
-		for _, m := range cmd.SearchMoves {
-			fmt.Fprintf(b, " %s", m)
-		}
+		text = fmt.Appendf(text, " searchmoves %s", strings.Join(cmd.SearchMoves, " "))
 	}
-
 	if cmd.Ponder {
-		fmt.Fprint(b, " ponder")
+		text = fmt.Appendf(text, " ponder")
 	}
-
 	if cmd.WTime > 0 {
-		fmt.Fprintf(b, " wtime %d", cmd.WTime.Milliseconds())
+		text = fmt.Appendf(text, " wtime %d", cmd.WTime.Milliseconds())
 	}
-
 	if cmd.BTime > 0 {
-		fmt.Fprintf(b, " btime %d", cmd.BTime.Milliseconds())
+		text = fmt.Appendf(text, " btime %d", cmd.BTime.Milliseconds())
 	}
-
 	if cmd.WInc > 0 {
-		fmt.Fprintf(b, " winc %d", cmd.WInc.Milliseconds())
+		text = fmt.Appendf(text, " winc %d", cmd.WInc.Milliseconds())
 	}
-
 	if cmd.BInc > 0 {
-		fmt.Fprintf(b, " binc %d", cmd.BInc.Milliseconds())
+		text = fmt.Appendf(text, " binc %d", cmd.BInc.Milliseconds())
 	}
-
 	if cmd.MovesToGo > 0 {
-		fmt.Fprintf(b, " movestogo %d", cmd.MovesToGo)
+		text = fmt.Appendf(text, " movestogo %d", cmd.MovesToGo)
 	}
-
 	if cmd.Depth > 0 {
-		fmt.Fprintf(b, " depth %d", cmd.Depth)
+		text = fmt.Appendf(text, " depth %d", cmd.Depth)
 	}
-
 	if cmd.Nodes > 0 {
-		fmt.Fprintf(b, " nodes %d", cmd.Nodes)
+		text = fmt.Appendf(text, " nodes %d", cmd.Nodes)
 	}
-
 	if cmd.Mate > 0 {
-		fmt.Fprintf(b, " mate %d", cmd.Mate)
+		text = fmt.Appendf(text, " mate %d", cmd.Mate)
 	}
-
 	if cmd.MoveTime > 0 {
-		fmt.Fprintf(b, " movetime %d", cmd.MoveTime.Milliseconds())
+		text = fmt.Appendf(text, " movetime %d", cmd.MoveTime.Milliseconds())
 	}
-
 	if cmd.Infinite {
-		fmt.Fprint(b, " infinite")
+		text = fmt.Appendf(text, " infinite")
 	}
-
-	return b.Bytes(), nil
+	return
 }
 
 // Stop represents a "stop" command.
