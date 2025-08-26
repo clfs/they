@@ -2,16 +2,17 @@ package uci
 
 import (
 	"bytes"
+	"encoding"
 	"testing"
 )
 
-func TestCommand_MarshalText(t *testing.T) {
+func TestMarshalText(t *testing.T) {
 	tests := []struct {
-		in      Command
+		in      encoding.TextMarshaler
 		want    []byte
 		wantErr error
 	}{
-		{in: &UCI{}, want: []byte("uci")},
+		{in: UCI{}, want: []byte("uci")},
 	}
 
 	for i, tt := range tests {
