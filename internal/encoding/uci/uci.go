@@ -7,11 +7,18 @@ package uci
 
 import (
 	"bytes"
+	"encoding"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 )
+
+// Command is the interface implemented by all UCI commands.
+type Command interface {
+	encoding.TextMarshaler
+	encoding.TextUnmarshaler
+}
 
 // UCI represents a "uci" command.
 type UCI struct{}
