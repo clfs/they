@@ -27,7 +27,7 @@ func (cmd UCI) MarshalText() ([]byte, error) {
 	return []byte("uci"), nil
 }
 
-func (cmd UCI) UnmarshalText(text []byte) error {
+func (cmd *UCI) UnmarshalText(text []byte) error {
 	b := bytes.TrimSpace(text)
 	if string(b) != "uci" {
 		return errors.New("not a uci command")
@@ -42,7 +42,7 @@ func (cmd IsReady) MarshalText() ([]byte, error) {
 	return []byte("isready"), nil
 }
 
-func (cmd IsReady) UnmarshalText(text []byte) error {
+func (cmd *IsReady) UnmarshalText(text []byte) error {
 	text = bytes.TrimSpace(text)
 
 	if string(text) != "isready" {
@@ -74,7 +74,7 @@ func (cmd UCINewGame) MarshalText() ([]byte, error) {
 	return []byte("ucinewgame"), nil
 }
 
-func (cmd UCINewGame) UnmarshalText(text []byte) error {
+func (cmd *UCINewGame) UnmarshalText(text []byte) error {
 	text = bytes.TrimSpace(text)
 
 	if string(text) != "ucinewgame" {

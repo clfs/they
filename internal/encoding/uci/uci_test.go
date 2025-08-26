@@ -11,7 +11,7 @@ func TestCommand_MarshalText(t *testing.T) {
 		want    []byte
 		wantErr error
 	}{
-		{in: UCI{}, want: []byte("uci")},
+		{in: &UCI{}, want: []byte("uci")},
 	}
 
 	for i, tt := range tests {
