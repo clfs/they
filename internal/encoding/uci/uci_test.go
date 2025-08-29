@@ -13,6 +13,7 @@ func TestMarshalText(t *testing.T) {
 		wantErr bool
 	}{
 		{in: UCI{}, want: []byte("uci")},
+		{in: IsReady{}, want: []byte("isready")},
 	}
 
 	for i, tt := range tests {

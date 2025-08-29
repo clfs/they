@@ -37,17 +37,21 @@ func (cmd *UCI) UnmarshalText(text []byte) error {
 // IsReady represents an "isready" command.
 type IsReady struct{}
 
-func (cmd IsReady) MarshalText() ([]byte, error) {
-	return []byte("isready"), nil
+// AppendText implements the [encoding.TextAppender] interface.
+func (cmd IsReady) AppendText(b []byte) ([]byte, error) {
+	return fmt.Append(b, "isready"), nil
 }
 
-func (cmd *IsReady) UnmarshalText(text []byte) error {
-	text = bytes.TrimSpace(text)
+// MarshalText implements the [encoding.TextMarshaler] interface.
+func (cmd IsReady) MarshalText() ([]byte, error) {
+	return cmd.AppendText(nil)
+}
 
+// UnmarshalText implements the [encoding.TextUnmarshaler] interface.
+func (cmd *IsReady) UnmarshalText(text []byte) error {
 	if string(text) != "isready" {
 		return errors.New("not an isready command")
 	}
-
 	return nil
 }
 
