@@ -2,16 +2,48 @@
 //
 // Not all commands are supported.
 //
+// Leading and trailing whitespace is ignored when parsing or unmarshaling.
+//
 // TODO(clfs): Create custom error types.
 package uci
 
 import (
 	"bytes"
+	"encoding"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 )
+
+// Parse parses text and returns the corresponding command.
+func Parse(text []byte) (any, error) {
+	var first []byte
+	for field := range bytes.FieldsSeq(text) {
+		first = field
+		break
+	}
+
+	var cmd encoding.TextUnmarshaler
+
+	// TODO(clfs): Does this string conversion allocate? If so, can we avoid it?
+	switch string(first) {
+	case "uci":
+		cmd = new(UCI)
+	case "isready":
+		cmd = new(IsReady)
+	default:
+		return nil, fmt.Errorf("uci.Parse: unknown command %s", first)
+	}
+
+	err := cmd.UnmarshalText(text)
+	return cmd, err
+}
+
+// ParseString wraps [Parse].
+func ParseString(s string) (any, error) {
+	return Parse([]byte(s))
+}
 
 // UCI represents a "uci" command.
 type UCI struct{}
@@ -28,7 +60,8 @@ func (cmd UCI) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
 func (cmd *UCI) UnmarshalText(text []byte) error {
-	if string(text) != "uci" {
+	b := bytes.TrimSpace(text)
+	if string(b) != "uci" {
 		return errors.New("not a uci command")
 	}
 	return nil
@@ -49,7 +82,8 @@ func (cmd IsReady) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
 func (cmd *IsReady) UnmarshalText(text []byte) error {
-	if string(text) != "isready" {
+	b := bytes.TrimSpace(text)
+	if string(b) != "isready" {
 		return errors.New("not an isready command")
 	}
 	return nil
