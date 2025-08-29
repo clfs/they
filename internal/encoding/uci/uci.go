@@ -16,13 +16,19 @@ import (
 // UCI represents a "uci" command.
 type UCI struct{}
 
-func (cmd UCI) MarshalText() ([]byte, error) {
-	return []byte("uci"), nil
+// AppendText implements the [encoding.TextAppender] interface.
+func (cmd UCI) AppendText(b []byte) ([]byte, error) {
+	return fmt.Append(b, "uci"), nil
 }
 
+// MarshalText implements the [encoding.TextMarshaler] interface.
+func (cmd UCI) MarshalText() ([]byte, error) {
+	return cmd.AppendText(nil)
+}
+
+// UnmarshalText implements the [encoding.TextUnmarshaler] interface.
 func (cmd *UCI) UnmarshalText(text []byte) error {
-	b := bytes.TrimSpace(text)
-	if string(b) != "uci" {
+	if string(text) != "uci" {
 		return errors.New("not a uci command")
 	}
 	return nil
