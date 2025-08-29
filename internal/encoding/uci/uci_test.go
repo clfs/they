@@ -10,13 +10,14 @@ func TestMarshalText(t *testing.T) {
 	tests := []struct {
 		in      encoding.TextMarshaler
 		want    []byte
-		wantErr error
+		wantErr bool
 	}{
 		{in: UCI{}, want: []byte("uci")},
 	}
 
 	for i, tt := range tests {
-		got, gotErr := tt.in.MarshalText()
+		got, err := tt.in.MarshalText()
+		gotErr := (err != nil)
 		if gotErr != tt.wantErr {
 			t.Errorf("%d: error mismatch: got %v, want %v", i, gotErr, tt.wantErr)
 		}

@@ -2,7 +2,7 @@
 //
 // Not all commands are supported.
 //
-// TODO(clfs): Create MarshalError and UnmarshalError.
+// TODO(clfs): Create custom error types.
 package uci
 
 import (
