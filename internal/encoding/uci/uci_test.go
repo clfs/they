@@ -2,18 +2,17 @@ package uci
 
 import (
 	"bytes"
-	"encoding"
 	"testing"
 )
 
 func TestMarshalText(t *testing.T) {
 	tests := []struct {
-		in      encoding.TextMarshaler
+		in      Command
 		want    []byte
 		wantErr bool
 	}{
-		{in: UCI{}, want: []byte("uci")},
-		{in: IsReady{}, want: []byte("isready")},
+		{in: &UCI{}, want: []byte("uci")},
+		{in: &IsReady{}, want: []byte("isready")},
 	}
 
 	for i, tt := range tests {
@@ -31,7 +30,7 @@ func TestMarshalText(t *testing.T) {
 func TestParseString(t *testing.T) {
 	tests := []struct {
 		in      string
-		want    any
+		want    Command
 		wantErr bool
 	}{
 		{in: "uci", want: &UCI{}},

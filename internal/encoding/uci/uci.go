@@ -16,15 +16,22 @@ import (
 	"time"
 )
 
+// Command is the interface implemented by all commands.
+type Command interface {
+	encoding.TextAppender
+	encoding.TextMarshaler
+	encoding.TextUnmarshaler
+}
+
 // Parse parses text and returns the corresponding command.
-func Parse(text []byte) (any, error) {
+func Parse(text []byte) (Command, error) {
 	var first []byte
 	for field := range bytes.FieldsSeq(text) {
 		first = field
 		break
 	}
 
-	var cmd encoding.TextUnmarshaler
+	var cmd Command
 
 	// TODO(clfs): Does this string conversion allocate? If so, can we avoid it?
 	switch string(first) {
