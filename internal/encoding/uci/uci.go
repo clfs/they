@@ -375,7 +375,7 @@ type Option struct {
 	Var     []string
 }
 
-// Blank is a placeholder that represents a blank command.
+// Blank is a placeholder that represents blank text.
 type Blank struct{}
 
 func (cmd Blank) AppendText(b []byte) ([]byte, error) {
@@ -391,5 +391,26 @@ func (cmd *Blank) UnmarshalText(text []byte) error {
 	if len(b) != 0 {
 		return errors.New("uci: Blank.UnmarshalText: text not blank")
 	}
+	return nil
+}
+
+// Unknown is a placeholder that represents unknown text.
+type Unknown struct {
+	Text string
+}
+
+// AppendText implements the [encoding.TextAppender] interface.
+func (cmd Unknown) AppendText(b []byte) ([]byte, error) {
+	return fmt.Append(b, cmd.Text), nil
+}
+
+// MarshalText implements the [encoding.TextMarshaler] interface.
+func (cmd Unknown) MarshalText() ([]byte, error) {
+	return cmd.AppendText(nil)
+}
+
+// UnmarshalText implements the [encoding.TextUnmarshaler] interface.
+func (cmd *Unknown) UnmarshalText(text []byte) error {
+	cmd.Text = string(text)
 	return nil
 }
