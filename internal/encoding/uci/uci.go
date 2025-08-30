@@ -374,3 +374,22 @@ type Option struct {
 	Max     string
 	Var     []string
 }
+
+// Blank is a placeholder that represents a blank command.
+type Blank struct{}
+
+func (cmd Blank) AppendText(b []byte) ([]byte, error) {
+	return b, nil
+}
+
+func (cmd Blank) MarshalText() ([]byte, error) {
+	return cmd.AppendText(nil)
+}
+
+func (cmd *Blank) UnmarshalText(text []byte) error {
+	b := bytes.TrimSpace(text)
+	if len(b) != 0 {
+		return errors.New("uci: Blank.UnmarshalText: text not blank")
+	}
+	return nil
+}
