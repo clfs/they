@@ -378,14 +378,17 @@ type Option struct {
 // Blank is a placeholder that represents blank text.
 type Blank struct{}
 
+// AppendText implements the [encoding.TextAppender] interface.
 func (cmd Blank) AppendText(b []byte) ([]byte, error) {
 	return b, nil
 }
 
+// MarshalText implements the [encoding.TextMarshaler] interface.
 func (cmd Blank) MarshalText() ([]byte, error) {
 	return cmd.AppendText(nil)
 }
 
+// UnmarshalText implements the [encoding.TextUnmarshaler] interface.
 func (cmd *Blank) UnmarshalText(text []byte) error {
 	b := bytes.TrimSpace(text)
 	if len(b) != 0 {
