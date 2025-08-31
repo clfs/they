@@ -39,8 +39,10 @@ func Parse(text []byte) (Command, error) {
 		cmd = new(UCI)
 	case "isready":
 		cmd = new(IsReady)
+	case "":
+		cmd = new(Blank)
 	default:
-		return nil, fmt.Errorf("uci.Parse: unknown command %s", first)
+		cmd = new(Unknown)
 	}
 
 	err := cmd.UnmarshalText(text)
