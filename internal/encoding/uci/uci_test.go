@@ -7,7 +7,7 @@ import (
 
 func TestMarshalText(t *testing.T) {
 	tests := []struct {
-		in      Command
+		in      Message
 		want    []byte
 		wantErr bool
 	}{
@@ -30,7 +30,7 @@ func TestMarshalText(t *testing.T) {
 func TestParseString(t *testing.T) {
 	tests := []struct {
 		in      string
-		want    Command
+		want    Message
 		wantErr bool
 	}{
 		{in: "uci", want: &UCI{}},

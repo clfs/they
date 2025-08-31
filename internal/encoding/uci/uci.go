@@ -1,6 +1,14 @@
-// Package uci implements encoding and decoding of UCI commands.
+// Package uci implements encoding and decoding of UCI messages.
 //
-// Not all commands are supported.
+// A UCI message contains one or more tokens. A token is either a command, a
+// parameter, or an argument.
+//
+// For example, the message "bestmove e2e4 ponder e7e5" contains four tokens:
+//
+//  1. "bestmove", a command
+//  2. "e2e4", an argument to the "bestmove" command
+//  3. "ponder", a parameter to the "bestmove" command
+//  4. "e7e5",  an argument to the "ponder" parameter
 //
 // Leading and trailing whitespace is ignored when parsing or unmarshaling.
 //
@@ -16,40 +24,40 @@ import (
 	"time"
 )
 
-// Command is the interface implemented by all commands.
-type Command interface {
+// Message is the interface implemented by all messages.
+type Message interface {
 	encoding.TextAppender
 	encoding.TextMarshaler
 	encoding.TextUnmarshaler
 }
 
-// Parse parses text and returns the corresponding command.
+// Parse parses text and returns the corresponding message.
 //
-// If text is blank, Parse returns [Blank]. If text is an unrecognized command,
+// If text is blank, Parse returns [Blank]. If text is an unrecognized message,
 // Parse returns [Unknown].
-func Parse(text []byte) (Command, error) {
+func Parse(text []byte) (Message, error) {
 	var first []byte
 	for field := range bytes.FieldsSeq(text) {
 		first = field
 		break
 	}
 
-	var cmd Command
+	var m Message
 
 	// TODO(clfs): Does this string conversion allocate? If so, can we avoid it?
 	switch string(first) {
 	case "uci":
-		cmd = new(UCI)
+		m = new(UCI)
 	case "isready":
-		cmd = new(IsReady)
+		m = new(IsReady)
 	case "":
-		cmd = new(Blank)
+		m = new(Blank)
 	default:
-		cmd = new(Unknown)
+		m = new(Unknown)
 	}
 
-	err := cmd.UnmarshalText(text)
-	return cmd, err
+	err := m.UnmarshalText(text)
+	return m, err
 }
 
 // ParseString wraps [Parse].
@@ -57,21 +65,21 @@ func ParseString(s string) (any, error) {
 	return Parse([]byte(s))
 }
 
-// UCI represents a "uci" command.
+// UCI represents a "uci" message.
 type UCI struct{}
 
 // AppendText implements the [encoding.TextAppender] interface.
-func (cmd UCI) AppendText(b []byte) ([]byte, error) {
+func (m UCI) AppendText(b []byte) ([]byte, error) {
 	return fmt.Append(b, "uci"), nil
 }
 
 // MarshalText implements the [encoding.TextMarshaler] interface.
-func (cmd UCI) MarshalText() ([]byte, error) {
-	return cmd.AppendText(nil)
+func (m UCI) MarshalText() ([]byte, error) {
+	return m.AppendText(nil)
 }
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
-func (cmd *UCI) UnmarshalText(text []byte) error {
+func (m *UCI) UnmarshalText(text []byte) error {
 	b := bytes.TrimSpace(text)
 	if string(b) != "uci" {
 		return errors.New("not a uci command")
@@ -79,21 +87,21 @@ func (cmd *UCI) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// IsReady represents an "isready" command.
+// IsReady represents an "isready" message.
 type IsReady struct{}
 
 // AppendText implements the [encoding.TextAppender] interface.
-func (cmd IsReady) AppendText(b []byte) ([]byte, error) {
+func (m IsReady) AppendText(b []byte) ([]byte, error) {
 	return fmt.Append(b, "isready"), nil
 }
 
 // MarshalText implements the [encoding.TextMarshaler] interface.
-func (cmd IsReady) MarshalText() ([]byte, error) {
-	return cmd.AppendText(nil)
+func (m IsReady) MarshalText() ([]byte, error) {
+	return m.AppendText(nil)
 }
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
-func (cmd *IsReady) UnmarshalText(text []byte) error {
+func (m *IsReady) UnmarshalText(text []byte) error {
 	b := bytes.TrimSpace(text)
 	if string(b) != "isready" {
 		return errors.New("not an isready command")
@@ -101,29 +109,29 @@ func (cmd *IsReady) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// SetOption represents a "setoption" command.
+// SetOption represents a "setoption" message.
 type SetOption struct {
 	Name  string
 	Value string
 }
 
-func (cmd SetOption) MarshalText() (text []byte, err error) {
+func (m SetOption) MarshalText() (text []byte, err error) {
 	text = fmt.Append(text, "setoption")
-	text = fmt.Appendf(text, " name %s", cmd.Name)
-	if cmd.Value != "" {
-		text = fmt.Appendf(text, " value %s", cmd.Value)
+	text = fmt.Appendf(text, " name %s", m.Name)
+	if m.Value != "" {
+		text = fmt.Appendf(text, " value %s", m.Value)
 	}
 	return
 }
 
-// UCINewGame represents a "ucinewgame" command.
+// UCINewGame represents a "ucinewgame" message.
 type UCINewGame struct{}
 
-func (cmd UCINewGame) MarshalText() ([]byte, error) {
+func (m UCINewGame) MarshalText() ([]byte, error) {
 	return []byte("ucinewgame"), nil
 }
 
-func (cmd *UCINewGame) UnmarshalText(text []byte) error {
+func (m *UCINewGame) UnmarshalText(text []byte) error {
 	text = bytes.TrimSpace(text)
 
 	if string(text) != "ucinewgame" {
@@ -133,31 +141,31 @@ func (cmd *UCINewGame) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// Position represents a "position" command.
+// Position represents a "position" message.
 type Position struct {
 	Startpos bool
 	FEN      string
 	Moves    []string
 }
 
-func (cmd Position) MarshalText() (text []byte, err error) {
+func (m Position) MarshalText() (text []byte, err error) {
 	text = fmt.Append(text, "position")
-	if cmd.Startpos {
+	if m.Startpos {
 		text = fmt.Append(text, " startpos")
 	}
-	if cmd.FEN != "" {
-		if cmd.Startpos {
+	if m.FEN != "" {
+		if m.Startpos {
 			return nil, errors.New("cannot specify both startpos and fen")
 		}
-		text = fmt.Appendf(text, " fen %s", cmd.FEN)
+		text = fmt.Appendf(text, " fen %s", m.FEN)
 	}
-	if len(cmd.Moves) > 0 {
-		text = fmt.Appendf(text, " moves %s", strings.Join(cmd.Moves, " "))
+	if len(m.Moves) > 0 {
+		text = fmt.Appendf(text, " moves %s", strings.Join(m.Moves, " "))
 	}
 	return
 }
 
-// Go represents a "go" command.
+// Go represents a "go" message.
 type Go struct {
 	SearchMoves []string
 	Ponder      bool
@@ -173,102 +181,102 @@ type Go struct {
 	Infinite    bool
 }
 
-func (cmd *Go) MarshalText() (text []byte, err error) {
+func (m *Go) MarshalText() (text []byte, err error) {
 	text = fmt.Append(text, "go")
-	if len(cmd.SearchMoves) > 0 {
-		text = fmt.Appendf(text, " searchmoves %s", strings.Join(cmd.SearchMoves, " "))
+	if len(m.SearchMoves) > 0 {
+		text = fmt.Appendf(text, " searchmoves %s", strings.Join(m.SearchMoves, " "))
 	}
-	if cmd.Ponder {
+	if m.Ponder {
 		text = fmt.Appendf(text, " ponder")
 	}
-	if cmd.WTime > 0 {
-		text = fmt.Appendf(text, " wtime %d", cmd.WTime.Milliseconds())
+	if m.WTime > 0 {
+		text = fmt.Appendf(text, " wtime %d", m.WTime.Milliseconds())
 	}
-	if cmd.BTime > 0 {
-		text = fmt.Appendf(text, " btime %d", cmd.BTime.Milliseconds())
+	if m.BTime > 0 {
+		text = fmt.Appendf(text, " btime %d", m.BTime.Milliseconds())
 	}
-	if cmd.WInc > 0 {
-		text = fmt.Appendf(text, " winc %d", cmd.WInc.Milliseconds())
+	if m.WInc > 0 {
+		text = fmt.Appendf(text, " winc %d", m.WInc.Milliseconds())
 	}
-	if cmd.BInc > 0 {
-		text = fmt.Appendf(text, " binc %d", cmd.BInc.Milliseconds())
+	if m.BInc > 0 {
+		text = fmt.Appendf(text, " binc %d", m.BInc.Milliseconds())
 	}
-	if cmd.MovesToGo > 0 {
-		text = fmt.Appendf(text, " movestogo %d", cmd.MovesToGo)
+	if m.MovesToGo > 0 {
+		text = fmt.Appendf(text, " movestogo %d", m.MovesToGo)
 	}
-	if cmd.Depth > 0 {
-		text = fmt.Appendf(text, " depth %d", cmd.Depth)
+	if m.Depth > 0 {
+		text = fmt.Appendf(text, " depth %d", m.Depth)
 	}
-	if cmd.Nodes > 0 {
-		text = fmt.Appendf(text, " nodes %d", cmd.Nodes)
+	if m.Nodes > 0 {
+		text = fmt.Appendf(text, " nodes %d", m.Nodes)
 	}
-	if cmd.Mate > 0 {
-		text = fmt.Appendf(text, " mate %d", cmd.Mate)
+	if m.Mate > 0 {
+		text = fmt.Appendf(text, " mate %d", m.Mate)
 	}
-	if cmd.MoveTime > 0 {
-		text = fmt.Appendf(text, " movetime %d", cmd.MoveTime.Milliseconds())
+	if m.MoveTime > 0 {
+		text = fmt.Appendf(text, " movetime %d", m.MoveTime.Milliseconds())
 	}
-	if cmd.Infinite {
+	if m.Infinite {
 		text = fmt.Appendf(text, " infinite")
 	}
 	return
 }
 
-// Stop represents a "stop" command.
+// Stop represents a "stop" message.
 type Stop struct{}
 
-func (cmd Stop) MarshalText() ([]byte, error) {
+func (m Stop) MarshalText() ([]byte, error) {
 	return []byte("stop"), nil
 }
 
-// PonderHit represents a "ponderhit" command.
+// PonderHit represents a "ponderhit" message.
 type PonderHit struct{}
 
-func (cmd PonderHit) MarshalText() ([]byte, error) {
+func (m PonderHit) MarshalText() ([]byte, error) {
 	return []byte("ponderhit"), nil
 }
 
-// Quit represents a "quit" command.
+// Quit represents a "quit" message.
 type Quit struct{}
 
-func (cmd Quit) MarshalText() ([]byte, error) {
+func (m Quit) MarshalText() ([]byte, error) {
 	return []byte("quit"), nil
 }
 
-// ID represents an "id" command.
+// ID represents an "id" message.
 type ID struct {
 	Name   string
 	Author string
 }
 
-func (cmd ID) MarshalText() ([]byte, error) {
+func (m ID) MarshalText() ([]byte, error) {
 	b := bytes.NewBufferString("id")
 
-	if cmd.Name != "" {
-		fmt.Fprintf(b, " name %s", cmd.Name)
+	if m.Name != "" {
+		fmt.Fprintf(b, " name %s", m.Name)
 	}
 
-	if cmd.Author != "" {
-		if cmd.Name != "" {
+	if m.Author != "" {
+		if m.Name != "" {
 			return nil, errors.New("cannot specify both author and name")
 		}
-		fmt.Fprintf(b, " author %s", cmd.Author)
+		fmt.Fprintf(b, " author %s", m.Author)
 	}
 
 	return b.Bytes(), nil
 }
 
-// UCIOK represents a "uciok" command.
+// UCIOK represents a "uciok" message.
 type UCIOK struct{}
 
-func (cmd UCIOK) MarshalText() ([]byte, error) {
+func (m UCIOK) MarshalText() ([]byte, error) {
 	return []byte("uciok"), nil
 }
 
-// ReadyOK represents a "readyok" command.
+// ReadyOK represents a "readyok" message.
 type ReadyOK struct{}
 
-func (cmd ReadyOK) MarshalText() ([]byte, error) {
+func (m ReadyOK) MarshalText() ([]byte, error) {
 	return []byte("readyok"), nil
 }
 
@@ -278,19 +286,19 @@ type BestMove struct {
 	Ponder string
 }
 
-func (cmd BestMove) MarshalText() ([]byte, error) {
+func (m BestMove) MarshalText() ([]byte, error) {
 	b := bytes.NewBufferString("bestmove")
 
-	fmt.Fprintf(b, " %s", cmd.Move)
+	fmt.Fprintf(b, " %s", m.Move)
 
-	if cmd.Ponder != "" {
-		fmt.Fprintf(b, " ponder %s", cmd.Ponder)
+	if m.Ponder != "" {
+		fmt.Fprintf(b, " ponder %s", m.Ponder)
 	}
 
 	return b.Bytes(), nil
 }
 
-// Info represents an "info" command.
+// Info represents an "info" message.
 type Info struct {
 	Depth          int
 	SelDepth       int
@@ -307,70 +315,70 @@ type Info struct {
 	Str            string
 }
 
-func (cmd Info) MarshalText() ([]byte, error) {
+func (m Info) MarshalText() ([]byte, error) {
 	b := bytes.NewBufferString("info")
 
 	// TODO(clfs): Determine which fields are incompatible.
 
-	if cmd.Depth > 0 {
-		fmt.Fprintf(b, " depth %d", cmd.Depth)
+	if m.Depth > 0 {
+		fmt.Fprintf(b, " depth %d", m.Depth)
 	}
 
-	if cmd.SelDepth > 0 {
-		if !(cmd.Depth > 0) {
+	if m.SelDepth > 0 {
+		if !(m.Depth > 0) {
 			return nil, errors.New("cannot specify seldepth without depth")
 		}
 	}
 
-	if cmd.Time > 0 {
-		fmt.Fprintf(b, " time %d", cmd.Time.Milliseconds())
+	if m.Time > 0 {
+		fmt.Fprintf(b, " time %d", m.Time.Milliseconds())
 	}
 
-	if cmd.Nodes > 0 {
-		fmt.Fprintf(b, " nodes %d", cmd.Nodes)
+	if m.Nodes > 0 {
+		fmt.Fprintf(b, " nodes %d", m.Nodes)
 	}
 
-	if len(cmd.PV) > 0 {
+	if len(m.PV) > 0 {
 		fmt.Fprint(b, " pv")
-		for _, m := range cmd.PV {
+		for _, m := range m.PV {
 			fmt.Fprintf(b, " %s", m)
 		}
 	}
 
-	if cmd.MultiPV > 0 {
-		fmt.Fprintf(b, " multipv %d", cmd.MultiPV)
+	if m.MultiPV > 0 {
+		fmt.Fprintf(b, " multipv %d", m.MultiPV)
 	}
 
-	if cmd.ScoreCP {
-		fmt.Fprintf(b, " score cp %d", cmd.Score)
+	if m.ScoreCP {
+		fmt.Fprintf(b, " score cp %d", m.Score)
 	} else {
-		fmt.Fprintf(b, " score mate %d", cmd.Score)
+		fmt.Fprintf(b, " score mate %d", m.Score)
 	}
 
-	if cmd.CurrMove != "" {
-		fmt.Fprintf(b, " currmove %s", cmd.CurrMove)
+	if m.CurrMove != "" {
+		fmt.Fprintf(b, " currmove %s", m.CurrMove)
 	}
 
-	if cmd.CurrMoveNumber > 0 {
-		fmt.Fprintf(b, " currmovenumber %d", cmd.CurrMoveNumber)
+	if m.CurrMoveNumber > 0 {
+		fmt.Fprintf(b, " currmovenumber %d", m.CurrMoveNumber)
 	}
 
-	if cmd.NPS > 0 {
-		fmt.Fprintf(b, " nps %d", cmd.NPS)
+	if m.NPS > 0 {
+		fmt.Fprintf(b, " nps %d", m.NPS)
 	}
 
-	if cmd.TBHits > 0 {
-		fmt.Fprintf(b, " tbhits %d", cmd.TBHits)
+	if m.TBHits > 0 {
+		fmt.Fprintf(b, " tbhits %d", m.TBHits)
 	}
 
-	if cmd.Str != "" {
-		fmt.Fprintf(b, " string %s", cmd.Str)
+	if m.Str != "" {
+		fmt.Fprintf(b, " string %s", m.Str)
 	}
 
 	return b.Bytes(), nil
 }
 
-// Option represents an "option" command.
+// Option represents an "option" message.
 type Option struct {
 	Name    string
 	Type    string
@@ -384,17 +392,17 @@ type Option struct {
 type Blank struct{}
 
 // AppendText implements the [encoding.TextAppender] interface.
-func (cmd Blank) AppendText(b []byte) ([]byte, error) {
+func (m Blank) AppendText(b []byte) ([]byte, error) {
 	return b, nil
 }
 
 // MarshalText implements the [encoding.TextMarshaler] interface.
-func (cmd Blank) MarshalText() ([]byte, error) {
-	return cmd.AppendText(nil)
+func (m Blank) MarshalText() ([]byte, error) {
+	return m.AppendText(nil)
 }
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
-func (cmd *Blank) UnmarshalText(text []byte) error {
+func (m *Blank) UnmarshalText(text []byte) error {
 	b := bytes.TrimSpace(text)
 	if len(b) != 0 {
 		return errors.New("uci: Blank.UnmarshalText: text not blank")
@@ -408,17 +416,17 @@ type Unknown struct {
 }
 
 // AppendText implements the [encoding.TextAppender] interface.
-func (cmd Unknown) AppendText(b []byte) ([]byte, error) {
-	return fmt.Append(b, cmd.Text), nil
+func (m Unknown) AppendText(b []byte) ([]byte, error) {
+	return fmt.Append(b, m.Text), nil
 }
 
 // MarshalText implements the [encoding.TextMarshaler] interface.
-func (cmd Unknown) MarshalText() ([]byte, error) {
-	return cmd.AppendText(nil)
+func (m Unknown) MarshalText() ([]byte, error) {
+	return m.AppendText(nil)
 }
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
-func (cmd *Unknown) UnmarshalText(text []byte) error {
-	cmd.Text = string(text)
+func (m *Unknown) UnmarshalText(text []byte) error {
+	m.Text = string(text)
 	return nil
 }
