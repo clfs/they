@@ -24,6 +24,9 @@ type Command interface {
 }
 
 // Parse parses text and returns the corresponding command.
+//
+// If text is blank, Parse returns [Blank]. If text is an unrecognized command,
+// Parse returns [Unknown].
 func Parse(text []byte) (Command, error) {
 	var first []byte
 	for field := range bytes.FieldsSeq(text) {
