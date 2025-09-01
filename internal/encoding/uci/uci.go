@@ -24,17 +24,6 @@ import (
 	"time"
 )
 
-// ErrMultipleLines is returned when attempting to decode multiple lines as
-// a single message.
-var ErrMultipleLines = errors.New("uci: cannot decode multiple lines as single command")
-
-// ErrWrongType is returned when attempting to decode a message into the wrong
-// Go type.
-var ErrWrongType = errors.New("uci: cannot decode into wrong type")
-
-// ErrInvalidArgs is returned when attempting to decode invalid arguments.
-var ErrInvalidArgs = errors.New("uci: cannot decode invalid args")
-
 // Message is the interface implemented by all messages.
 type Message interface {
 	encoding.TextAppender
