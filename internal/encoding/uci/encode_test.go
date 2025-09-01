@@ -16,6 +16,29 @@ func TestEncoder(t *testing.T) {
 			},
 			"uci\n",
 		},
+		{
+			[]Message{
+				&IsReady{},
+			},
+			"isready\n",
+		},
+		{
+			[]Message{
+				&SetOption{
+					Name: "foo",
+				},
+			},
+			"setoption name foo\n",
+		},
+		{
+			[]Message{
+				&SetOption{
+					Name:  "foo",
+					Value: "bar baz",
+				},
+			},
+			"setoption name foo value bar baz\n",
+		},
 	}
 
 	for i, tt := range tests {
@@ -30,7 +53,7 @@ func TestEncoder(t *testing.T) {
 
 		got := buf.String()
 		if got != tt.want {
-			t.Errorf("%d: output mismatch: got %s, want %s", i, got, tt.want)
+			t.Errorf("%d: output mismatch: got %q, want %q", i, got, tt.want)
 		}
 	}
 }

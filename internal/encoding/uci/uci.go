@@ -57,22 +57,7 @@ func (m UCI) MarshalText() ([]byte, error) {
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
 func (m *UCI) UnmarshalText(line []byte) error {
-	// tokens, err := tokenize(line)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// first := tokens[0]
-
-	// if string(first) != "uci" {
-	// 	return ErrWrongType
-	// }
-
-	// if len(tokens) > 1 {
-	// 	return ErrInvalidArgs
-	// }
-
-	return nil
+	panic("not implemented")
 }
 
 // IsReady represents an "isready" message.
@@ -103,13 +88,31 @@ type SetOption struct {
 	Value string
 }
 
-func (m SetOption) MarshalText() (text []byte, err error) {
-	text = fmt.Append(text, "setoption")
-	text = fmt.Appendf(text, " name %s", m.Name)
-	if m.Value != "" {
-		text = fmt.Appendf(text, " value %s", m.Value)
+// AppendText implements the [encoding.TextAppender] interface.
+func (m SetOption) AppendText(b []byte) ([]byte, error) {
+	b = fmt.Append(b, "setoption")
+
+	if m.Name != "" {
+		b = fmt.Appendf(b, " name %s", m.Name)
+	} else {
+		return nil, errors.New("no name")
 	}
-	return
+
+	if m.Value != "" {
+		b = fmt.Appendf(b, " value %s", m.Value)
+	}
+
+	return b, nil
+}
+
+// MarshalText implements the [encoding.TextMarshaler] interface.
+func (m SetOption) MarshalText() (text []byte, err error) {
+	return m.AppendText(nil)
+}
+
+// UnmarshalText implements the [encoding.TextUnmarshaler] interface.
+func (m SetOption) UnmarshalText(text []byte) error {
+	panic("not implemented")
 }
 
 // UCINewGame represents a "ucinewgame" message.
