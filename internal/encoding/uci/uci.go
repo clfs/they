@@ -1,17 +1,5 @@
 // Package uci implements encoding and decoding of UCI messages.
 //
-// A UCI message contains one or more tokens. A token is either a command, a
-// parameter, or an argument.
-//
-// For example, the message "bestmove e2e4 ponder e7e5" contains four tokens:
-//
-//  1. "bestmove", a command
-//  2. "e2e4", an argument to the "bestmove" command
-//  3. "ponder", a parameter to the "bestmove" command
-//  4. "e7e5",  an argument to the "ponder" parameter
-//
-// Leading and trailing whitespace is ignored when parsing or unmarshaling.
-//
 // TODO(clfs): Create custom error types.
 package uci
 
