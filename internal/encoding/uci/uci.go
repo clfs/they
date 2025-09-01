@@ -26,11 +26,18 @@ import (
 )
 
 // ErrBlankLine is returned when attempting to decode a blank line.
-var ErrBlankLine = errors.New("uci: blank line")
+var ErrBlankLine = errors.New("uci: cannot decode blank line")
 
 // ErrMultipleLines is returned when attempting to decode multiple lines as
 // a single message.
-var ErrMultipleLines = errors.New("uci: multiple lines")
+var ErrMultipleLines = errors.New("uci: cannot decode multiple lines as single command")
+
+// ErrWrongType is returned when attempting to decode a message into the wrong
+// Go type.
+var ErrWrongType = errors.New("uci: cannot decode into wrong type")
+
+// ErrInvalidArgs is returned when attempting to decode invalid arguments.
+var ErrInvalidArgs = errors.New("uci: cannot decode invalid args")
 
 func tokenize(line []byte) ([][]byte, error) {
 	next, stop := iter.Pull(bytes.Lines(line))
@@ -80,11 +87,11 @@ func (m *UCI) UnmarshalText(line []byte) error {
 	first := tokens[0]
 
 	if string(first) != "uci" {
-		return errors.New("not a uci command")
+		return ErrWrongType
 	}
 
 	if len(tokens) > 1 {
-		return errors.New("extra args")
+		return ErrInvalidArgs
 	}
 
 	return nil

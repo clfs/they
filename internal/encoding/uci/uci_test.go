@@ -12,6 +12,10 @@ func TestUCI_UnmarshalText(t *testing.T) {
 		wantErr error
 	}{
 		{in: []byte("uci"), want: UCI{}},
+		{wantErr: ErrBlankLine},
+		{in: []byte("uci\nuci\n"), wantErr: ErrMultipleLines},
+		{in: []byte("foo\n"), wantErr: ErrWrongType},
+		{in: []byte("uci foo\n"), wantErr: ErrInvalidArgs},
 	}
 
 	for i, tt := range tests {
