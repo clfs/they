@@ -20,9 +20,35 @@ import (
 	"encoding"
 	"errors"
 	"fmt"
+	"iter"
 	"strings"
 	"time"
 )
+
+// ErrBlankLine is returned when attempting to decode a blank line.
+var ErrBlankLine = errors.New("uci: blank line")
+
+// ErrMultipleLines is returned when attempting to decode multiple lines as
+// a single message.
+var ErrMultipleLines = errors.New("uci: multiple lines")
+
+func tokenize(line []byte) ([][]byte, error) {
+	next, stop := iter.Pull(bytes.Lines(line))
+	defer stop()
+
+	line, ok := next()
+	if !ok {
+		return nil, ErrBlankLine
+	}
+
+	if _, ok = next(); ok {
+		return nil, ErrMultipleLines
+	}
+
+	fields := bytes.Fields(line)
+
+	return fields, nil
+}
 
 // Message is the interface implemented by all messages.
 type Message interface {
@@ -45,11 +71,22 @@ func (m UCI) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText implements the [encoding.TextUnmarshaler] interface.
-func (m *UCI) UnmarshalText(text []byte) error {
-	b := bytes.TrimSpace(text)
-	if string(b) != "uci" {
+func (m *UCI) UnmarshalText(line []byte) error {
+	tokens, err := tokenize(line)
+	if err != nil {
+		return err
+	}
+
+	first := tokens[0]
+
+	if string(first) != "uci" {
 		return errors.New("not a uci command")
 	}
+
+	if len(tokens) > 1 {
+		return errors.New("extra args")
+	}
+
 	return nil
 }
 

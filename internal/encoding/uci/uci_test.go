@@ -5,6 +5,27 @@ import (
 	"testing"
 )
 
+func TestUCI_UnmarshalText(t *testing.T) {
+	tests := []struct {
+		in      []byte
+		want    UCI
+		wantErr error
+	}{
+		{in: []byte("uci"), want: UCI{}},
+	}
+
+	for i, tt := range tests {
+		var got UCI
+		gotErr := got.UnmarshalText(tt.in)
+		if gotErr != tt.wantErr {
+			t.Errorf("%d: error mismatch: got %v, want %v", i, gotErr, tt.wantErr)
+		}
+		if got != tt.want {
+			t.Errorf("%d: output mispatch: got %v, want %v", i, got, tt.want)
+		}
+	}
+}
+
 func TestMarshalText(t *testing.T) {
 	tests := []struct {
 		in      Message
