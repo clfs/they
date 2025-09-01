@@ -1,21 +1,46 @@
 package uci
 
-import "bytes"
+import (
+	"bufio"
+	"bytes"
+	"io"
+)
 
-// Parse parses text and returns the corresponding message.
-//
-// If text is blank, Parse returns [Blank]. If text is an unrecognized message,
-// Parse returns [Unknown].
-func Parse(text []byte) (Message, error) {
+// Decoder is a streaming decoder for UCI messages.
+type Decoder struct {
+	s *bufio.Scanner
+}
+
+// NewDecoder constructs a new streaming decoder reading from r.
+func NewDecoder(r io.Reader) *Decoder {
+	s := bufio.NewScanner(r)
+	d := Decoder{
+		s: s,
+	}
+	return &d
+}
+
+// ReadMessage reads the next [Message]. It returns [io.EOF] if there are no
+// more messages.
+func (d *Decoder) ReadMessage() (Message, error) {
+	if ok := d.s.Scan(); !ok {
+		err := d.s.Err()
+		if err == nil {
+			err = io.EOF
+		}
+		return nil, err
+	}
+
+	line := d.s.Bytes()
+
 	var first []byte
-	for field := range bytes.FieldsSeq(text) {
+	for field := range bytes.FieldsSeq(line) {
 		first = field
 		break
 	}
 
 	var m Message
 
-	// TODO(clfs): Does this string conversion allocate? If so, can we avoid it?
 	switch string(first) {
 	case "uci":
 		m = new(UCI)
@@ -27,11 +52,8 @@ func Parse(text []byte) (Message, error) {
 		m = new(Unknown)
 	}
 
-	err := m.UnmarshalText(text)
-	return m, err
-}
-
-// ParseString wraps [Parse].
-func ParseString(s string) (any, error) {
-	return Parse([]byte(s))
+	if err := m.UnmarshalText(line); err != nil {
+		return nil, err
+	}
+	return m, nil
 }

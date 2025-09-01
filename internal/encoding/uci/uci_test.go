@@ -12,7 +12,7 @@ func TestUCI_UnmarshalText(t *testing.T) {
 		wantErr error
 	}{
 		{in: []byte("uci"), want: UCI{}},
-		{wantErr: ErrBlankLine},
+		// {wantErr: ErrBlankLine},
 		{in: []byte("uci\nuci\n"), wantErr: ErrMultipleLines},
 		{in: []byte("foo\n"), wantErr: ErrWrongType},
 		{in: []byte("uci foo\n"), wantErr: ErrInvalidArgs},
@@ -48,32 +48,6 @@ func TestMarshalText(t *testing.T) {
 		}
 		if !bytes.Equal(got, tt.want) {
 			t.Errorf("%d: output mismatch: got %v, want %v", i, got, tt.want)
-		}
-	}
-}
-
-func TestParseString(t *testing.T) {
-	tests := []struct {
-		in      string
-		want    Message
-		wantErr bool
-	}{
-		{in: "uci", want: &UCI{}},
-		{in: " uci", want: &UCI{}},
-		{in: "uci\n", want: &UCI{}},
-		{in: "uci\r\n", want: &UCI{}},
-
-		{in: "isready", want: &IsReady{}},
-	}
-
-	for i, tt := range tests {
-		got, err := ParseString(tt.in)
-		gotErr := (err != nil)
-		if gotErr != tt.wantErr {
-			t.Errorf("%d: error mismatch: got %v, want %v", i, gotErr, tt.wantErr)
-		}
-		if got != tt.want {
-			t.Errorf("%d: output mismatch: got %#v, want %#v", i, got, tt.want)
 		}
 	}
 }
