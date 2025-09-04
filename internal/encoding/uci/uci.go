@@ -72,7 +72,7 @@ func (m SetOption) AppendText(b []byte) ([]byte, error) {
 	if m.Name != "" {
 		b = fmt.Appendf(b, " name %s", m.Name)
 	} else {
-		return nil, errors.New("no name")
+		return nil, fmt.Errorf("%w: %s", errMissingArg, "name")
 	}
 
 	if m.Value != "" {
