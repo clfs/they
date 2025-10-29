@@ -60,7 +60,7 @@ type Quit struct{}
 
 // UnmarshalText implements [encoding.TextUnmarshaler].
 func (m *Quit) UnmarshalText(text []byte) error {
-	if string(text) != "stop" {
+	if string(text) != "quit" {
 		return errors.New("not a quit command")
 	}
 	return nil
