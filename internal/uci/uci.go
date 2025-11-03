@@ -2,9 +2,9 @@
 package uci
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"regexp"
 )
 
 // UCI represents a "uci" command.
@@ -77,18 +77,26 @@ type ID struct {
 	Author string
 }
 
+var (
+	regexpIDName   = regexp.MustCompile(`^id name (.+)`)
+	regexpIDAuthor = regexp.MustCompile(`^id author (.+)`)
+)
+
 // UnmarshalText implements [encoding.TextUnmarshaler].
 func (m *ID) UnmarshalText(text []byte) error {
-	fields := bytes.Fields(text)
-
-	if len(fields) == 0 {
-		return errors.New("no command provided")
-	}
-	if string(fields[0]) != "id" {
-		return errors.New("not an id command")
+	subs := regexpIDName.FindSubmatch(text)
+	if subs != nil {
+		m.Name = string(subs[1])
+		return nil
 	}
 
-	return nil
+	subs = regexpIDAuthor.FindSubmatch(text)
+	if subs != nil {
+		m.Author = string(subs[1])
+		return nil
+	}
+
+	return errors.New("invalid id command")
 }
 
 // AppendText implements [encoding.TextAppender].
