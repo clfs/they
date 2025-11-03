@@ -102,7 +102,7 @@ func TestUCI_AppendText(t *testing.T) {
 				t.Errorf("%#v.AppendText(nil): got %q, want %q", test.message, got, test.want)
 			}
 			if gotErr != test.wantErr {
-				t.Errorf("#%v.AppendText(nil): gotErr %v, wantErr %v", test.message, gotErr, test.wantErr)
+				t.Errorf("%#v.AppendText(nil): gotErr %v, wantErr %v", test.message, gotErr, test.wantErr)
 			}
 		})
 	}
