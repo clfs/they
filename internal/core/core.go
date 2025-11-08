@@ -47,6 +47,8 @@ func (p PieceType) String() string {
 		return "Knight"
 	case Bishop:
 		return "Bishop"
+	case Rook:
+		return "Rook"
 	case Queen:
 		return "Queen"
 	case King:
