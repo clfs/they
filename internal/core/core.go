@@ -1,7 +1,39 @@
 // Package core implements core chess functionality.
 package core
 
-import "fmt"
+import (
+	"fmt"
+	"math/bits"
+)
+
+// A Bitboard stores one bit of information per board square.
+type Bitboard uint64
+
+// Count returns the number of set bits in b.
+func (b *Bitboard) Count() int {
+	return bits.OnesCount64(uint64(*b))
+}
+
+// IsEmpty returns true if no bits are set.
+func (b *Bitboard) IsEmpty() bool {
+	return *b == 0
+}
+
+// Get returns the bit at s.
+func (b *Bitboard) Get(s Square) bool {
+	v := *b & s.Bitboard()
+	return v != 0
+}
+
+// Set sets the bit at s.
+func (b *Bitboard) Set(s Square) {
+	*b |= s.Bitboard()
+}
+
+// Clear clears the bit at s.
+func (b *Bitboard) Clear(s Square) {
+	*b &^= s.Bitboard()
+}
 
 // Color represents a color, like [White].
 type Color bool
@@ -89,6 +121,11 @@ func (f File) String() string {
 	return fmt.Sprintf("File%c", 'A'+f)
 }
 
+// Bitboard returns a bitboard with just squares on f set.
+func (f File) Bitboard() Bitboard {
+	return Bitboard(0x101010101010101 << f)
+}
+
 // Rank represents a rank, like [Rank1].
 type Rank uint8
 
@@ -110,6 +147,11 @@ func (r Rank) String() string {
 		return fmt.Sprintf("Rank(%d)", r)
 	}
 	return fmt.Sprintf("Rank%c", '1'+r)
+}
+
+// Bitboard returns a bitboard with just squares on r set.
+func (r Rank) Bitboard() Bitboard {
+	return Bitboard(0xff << (r * 8))
 }
 
 // Square represents a square, like [A1].
@@ -208,4 +250,9 @@ func (s Square) File() File {
 // Rank returns the rank that s is on.
 func (s Square) Rank() Rank {
 	return Rank(s / 8)
+}
+
+// Bitboard returns a bitboard with just s set.
+func (s Square) Bitboard() Bitboard {
+	return Bitboard(1 << s)
 }
