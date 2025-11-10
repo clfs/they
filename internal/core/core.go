@@ -256,3 +256,54 @@ func (s Square) Rank() Rank {
 func (s Square) Bitboard() Bitboard {
 	return Bitboard(1 << s)
 }
+
+// Castling represents a set of castling rights.
+//
+// The zero value indicates neither player has castling rights.
+//
+// Note that a player may have a castling right even if they cannot legally make
+// the corresponding move.
+type Castling uint8
+
+// [Castling] constants.
+const (
+	WhiteOO Castling = 1 << iota
+	WhiteOOO
+	BlackOO
+	BlackOOO
+)
+
+// GetAll returns true if every castling right in x is also in c.
+func (c *Castling) GetAll(x Castling) bool {
+	return *c&x == x
+}
+
+// GetAny returns true if at least one castling right in x is also in c.
+func (c *Castling) GetAny(x Castling) bool {
+	return *c&x != 0
+}
+
+// Set sets in c all castling rights in x.
+func (c *Castling) Set(x Castling) {
+	*c |= x
+}
+
+// Clear clears from c all castling rights in x.
+func (c *Castling) Clear(x Castling) {
+	*c &^= x
+}
+
+// EnPassant represents the right to capture en passant.
+//
+// The zero value indicates the player does not have the right to capture en
+// passant. A non-zero value indicates that the player has the right to capture
+// en passant on the specified target square.
+//
+// Note that a player may have the right to capture en passant even if they
+// cannot legally make the corresponding move.
+type EnPassant Square
+
+// Clear clears the right to capture en passant.
+func (e *EnPassant) Clear() {
+	*e = 0
+}
