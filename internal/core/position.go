@@ -25,7 +25,8 @@ type Position struct {
 	// The number of plies since the start of the game.
 	Plies uint16
 
-	// The number of plies since the last capture, the last pawn advance, or the
-	// start of the game, whichever is least.
+	// The number of plies since the most recent capture or pawn advance. If no
+	// captures or pawn advances have occurred, this is the number of plies
+	// since the start of the game.
 	FiftyMoveRule uint8
 }
