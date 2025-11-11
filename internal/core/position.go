@@ -31,6 +31,6 @@ type Position struct {
 	FiftyMoveRule uint8
 }
 
-func (p Position) Move(m Move) {
+func (p *Position) Move(m Move) {
 	// TODO(clfs): Implement.
 }
