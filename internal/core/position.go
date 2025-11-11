@@ -30,3 +30,7 @@ type Position struct {
 	// since the start of the game.
 	FiftyMoveRule uint8
 }
+
+func (p Position) Move(m Move) {
+	// TODO(clfs): Implement.
+}

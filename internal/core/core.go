@@ -307,3 +307,17 @@ type EnPassant Square
 func (e *EnPassant) Clear() {
 	*e = 0
 }
+
+// Move represents a move.
+type Move struct {
+	// The moved piece, or king if castling, departs from this square.
+	From Square
+
+	// The moved piece, or king if castling, lands on this square.
+	To Square
+
+	// The moved piece promotes to this piece type.
+	//
+	// The zero value indicates no promotion occurs.
+	Promotion PieceType
+}
