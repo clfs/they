@@ -4,14 +4,8 @@ package core
 type Position struct {
 	// TODO(clfs): Make these fields unexported.
 
-	// Squares occupied by white pieces.
-	WhiteBB Bitboard
-
-	// Squares occupied by black pieces.
-	BlackBB Bitboard
-
-	// Piece occupancy bitboards, indexed by [PieceType].
-	PieceBBs [6]Bitboard
+	// The board.
+	Board Board
 
 	// The player whose turn it is.
 	Turn Color
