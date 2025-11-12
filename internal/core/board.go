@@ -84,10 +84,7 @@ func (b *Board) Piece(s Square) (Piece, bool) {
 	if !ok {
 		return Piece{}, false
 	}
-	pt, ok := b.PieceType(s)
-	if !ok {
-		return Piece{}, false
-	}
+	pt, _ := b.PieceType(s)
 	p := Piece{
 		Color:     c,
 		PieceType: pt,
