@@ -110,7 +110,7 @@ func (b *Board) Set(p Piece, s Square) {
 
 // Clear clears a piece from a square.
 //
-// If the s is already empty, nothing happens.
+// If the square is already empty, nothing happens.
 func (b *Board) Clear(s Square) {
 	b.white.Clear(s)
 	b.black.Clear(s)
