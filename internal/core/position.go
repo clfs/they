@@ -25,6 +25,14 @@ type Position struct {
 	FiftyMoveRule uint8
 }
 
+// NewPosition returns the starting position.
+func NewPosition() Position {
+	return Position{
+		Board:    NewBoard(),
+		Castling: NewCastling(),
+	}
+}
+
 func (p *Position) Move(m Move) {
 	// TODO(clfs): Implement.
 }

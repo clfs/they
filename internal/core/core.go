@@ -273,6 +273,11 @@ const (
 	BlackOOO
 )
 
+// NewCastling returns a new [Castling] with all castling rights set.
+func NewCastling() Castling {
+	return WhiteOO | WhiteOOO | BlackOO | BlackOOO
+}
+
 // GetAll returns true if every castling right in x is also in c.
 func (c *Castling) GetAll(x Castling) bool {
 	return *c&x == x
