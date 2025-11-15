@@ -107,7 +107,7 @@ func (p *Position) Move(m Move) {
 	// Is the move a double pawn push?
 	fromRank, toRank := from.Rank(), to.Rank()
 	isDoublePawnPush := isPawnMove &&
-		(fromRank == Rank2 && toRank == Rank4) || (fromRank == Rank7 && toRank == Rank5)
+		((fromRank == Rank2 && toRank == Rank4) || (fromRank == Rank7 && toRank == Rank5))
 
 	// If the move is a double pawn push, update the right to capture en
 	// passant.
