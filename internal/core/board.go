@@ -105,6 +105,12 @@ func (b *Board) Set(p Piece, s Square) {
 	b.pieces[p.PieceType].Set(s)
 }
 
+// Move moves a piece between two squares.
+func (b *Board) Move(p Piece, from, to Square) {
+	b.Clear(from)
+	b.Set(p, to)
+}
+
 // Clear clears a piece from a square.
 //
 // If the square is already empty, nothing happens.
@@ -114,4 +120,9 @@ func (b *Board) Clear(s Square) {
 	for i := range b.pieces {
 		b.pieces[i].Clear(s)
 	}
+}
+
+// IsOccupied returns true if the given square is occupied.
+func (b *Board) IsOccupied(s Square) bool {
+	return b.white.Get(s) || b.black.Get(s)
 }

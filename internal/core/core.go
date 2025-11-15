@@ -98,6 +98,14 @@ type Piece struct {
 	PieceType PieceType
 }
 
+// NewPiece returns a new [Piece].
+func NewPiece(c Color, pt PieceType) Piece {
+	return Piece{
+		Color:     c,
+		PieceType: pt,
+	}
+}
+
 // File represents a file, like [FileA].
 type File uint8
 
@@ -257,6 +265,22 @@ func (s Square) Bitboard() Bitboard {
 	return Bitboard(1 << s)
 }
 
+// Above returns the square above s, if any.
+func (s Square) Above() (Square, bool) {
+	if s.Rank() == Rank8 {
+		return 0, false
+	}
+	return s + 8, true
+}
+
+// Below returns the square below s, if any.
+func (s Square) Below() (Square, bool) {
+	if s.Rank() == Rank1 {
+		return 0, false
+	}
+	return s - 8, true
+}
+
 // Castling represents a set of castling rights.
 //
 // The zero value indicates neither player has castling rights.
@@ -272,6 +296,11 @@ const (
 	BlackOO
 	BlackOOO
 )
+
+// NewCastling returns a new [Castling] with all castling rights set.
+func NewCastling() Castling {
+	return WhiteOO | WhiteOOO | BlackOO | BlackOOO
+}
 
 // GetAll returns true if every castling right in x is also in c.
 func (c *Castling) GetAll(x Castling) bool {
@@ -293,15 +322,46 @@ func (c *Castling) Clear(x Castling) {
 	*c &^= x
 }
 
+// ClearColor clears from c both castling rights for the given color.
+func (c *Castling) ClearColor(cl Color) {
+	var lost Castling
+	if cl == White {
+		lost = WhiteOO | WhiteOOO
+	} else {
+		lost = BlackOO | BlackOOO
+	}
+	c.Clear(lost)
+}
+
 // EnPassant represents the right to capture en passant.
 //
-// The zero value indicates the player does not have the right to capture en
-// passant. A non-zero value indicates that the player has the right to capture
-// en passant on the specified target square.
+// The zero value indicates there is no right to capture en passant.
 //
 // Note that a player may have the right to capture en passant even if they
 // cannot legally make the corresponding move.
-type EnPassant Square
+type EnPassant uint8
+
+// Square returns the square where the right to capture en passant exists, if
+// any.
+func (e *EnPassant) Square() (Square, bool) {
+	return Square(*e), e.Exists()
+}
+
+// Exists returns true if the right to capture en passant exists.
+func (e *EnPassant) Exists() bool {
+	return *e != 0
+}
+
+// ExistsAt returns true if the right to capture en passant exists at s.
+func (e *EnPassant) ExistsAt(s Square) bool {
+	v, ok := e.Square()
+	return ok && s == v
+}
+
+// Set sets the right to capture en passant at s.
+func (e *EnPassant) Set(s Square) {
+	*e = EnPassant(s)
+}
 
 // Clear clears the right to capture en passant.
 func (e *EnPassant) Clear() {
@@ -311,13 +371,33 @@ func (e *EnPassant) Clear() {
 // Move represents a move.
 type Move struct {
 	// The moved piece, or king if castling, departs from this square.
-	From Square
+	from Square
 
 	// The moved piece, or king if castling, lands on this square.
-	To Square
+	to Square
 
 	// The moved piece promotes to this piece type.
 	//
 	// The zero value indicates no promotion occurs.
-	Promotion PieceType
+	promotion PieceType
+}
+
+// From returns the square the moved piece, or king if castling, departs from.
+func (m Move) From() Square {
+	return m.from
+}
+
+// To returns the square the moved piece, or king if castling, lands on.
+func (m Move) To() Square {
+	return m.to
+}
+
+// IsPromotion returns true if the move is a promotion move.
+func (m Move) IsPromotion() bool {
+	return m.promotion != 0
+}
+
+// PromotionTo returns the piece type that the moved piece promotes to, if any.
+func (m Move) PromotionTo() (PieceType, bool) {
+	return m.promotion, m.IsPromotion()
 }
