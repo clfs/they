@@ -109,8 +109,7 @@ func (p *Position) Move(m Move) {
 	isDoublePawnPush := isPawnMove &&
 		((fromRank == Rank2 && toRank == Rank4) || (fromRank == Rank7 && toRank == Rank5))
 
-	// If the move is a double pawn push, update the right to capture en
-	// passant.
+	// Update the right to capture en passant.
 	if isDoublePawnPush {
 		var s Square
 		if isWhiteTurn {
@@ -119,6 +118,8 @@ func (p *Position) Move(m Move) {
 			s, _ = from.Below()
 		}
 		p.EnPassant.Set(s)
+	} else {
+		p.EnPassant.Clear()
 	}
 
 	// Is the move a castling move?
