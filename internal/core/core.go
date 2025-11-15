@@ -394,7 +394,7 @@ func (m Move) To() Square {
 
 // IsPromotion returns true if the move is a promotion move.
 func (m Move) IsPromotion() bool {
-	return m.promotion != Pawn
+	return m.promotion != 0
 }
 
 // PromotionTo returns the piece type that the moved piece promotes to, if any.
