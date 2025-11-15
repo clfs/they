@@ -160,9 +160,9 @@ func (p *Position) Move(m Move) {
 
 	// Update the fifty move rule counter.
 	if isCapture || isPawnMove {
-		p.FiftyMoveRule++
-	} else {
 		p.FiftyMoveRule = 0
+	} else {
+		p.FiftyMoveRule++
 	}
 
 	// Finish the turn.
