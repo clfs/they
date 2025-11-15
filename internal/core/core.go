@@ -278,7 +278,7 @@ func (s Square) Below() (Square, bool) {
 	if s.Rank() == Rank1 {
 		return 0, false
 	}
-	return s - 8, false
+	return s - 8, true
 }
 
 // Castling represents a set of castling rights.
