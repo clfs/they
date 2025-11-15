@@ -47,7 +47,7 @@ func (p *Position) Move(m Move) {
 	isPawnMove := heldPiece.PieceType == Pawn
 
 	// Is the move an en passant capture?
-	isEnPassantCapture := isPawnMove && p.EnPassant.IsDestination(to)
+	isEnPassantCapture := isPawnMove && p.EnPassant.ExistsAt(to)
 
 	// Is the move a regular capture, i.e., not en passant?
 	isRegularCapture := p.Board.IsOccupied(to)
@@ -55,9 +55,17 @@ func (p *Position) Move(m Move) {
 	// Is the move a capture?
 	isCapture := isRegularCapture || isEnPassantCapture
 
+	// Is it White's turn?
+	isWhiteTurn := p.Turn == White
+
 	// If the move is an en passant capture, remove the captured pawn.
 	if isEnPassantCapture {
-		s, _ := p.EnPassant.CaptureSquare()
+		s, _ := p.EnPassant.Square()
+		if isWhiteTurn {
+			s, _ = s.Below()
+		} else {
+			s, _ = s.Above()
+		}
 		p.Board.Clear(s)
 	}
 
@@ -100,9 +108,6 @@ func (p *Position) Move(m Move) {
 	fromRank, toRank := from.Rank(), to.Rank()
 	isDoublePawnPush := isPawnMove &&
 		(fromRank == Rank2 && toRank == Rank4) || (fromRank == Rank7 && toRank == Rank5)
-
-	// Is it White's turn?
-	isWhiteTurn := p.Turn == White
 
 	// If the move is a double pawn push, update the right to capture en
 	// passant.

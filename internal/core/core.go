@@ -322,60 +322,43 @@ func (c *Castling) Clear(x Castling) {
 	*c &^= x
 }
 
+// ClearColor clears from c both castling rights for the given color.
 func (c *Castling) ClearColor(cl Color) {
+	var lost Castling
 	if cl == White {
-		c.Clear(WhiteOO)
-		c.Clear(WhiteOOO)
+		lost = WhiteOO | WhiteOOO
 	} else {
-		c.Clear(BlackOO)
-		c.Clear(BlackOOO)
+		lost = BlackOO | BlackOOO
 	}
+	c.Clear(lost)
 }
 
 // EnPassant represents the right to capture en passant.
 //
-// The zero value indicates the player does not have the right to capture en
-// passant.
+// The zero value indicates there is no right to capture en passant.
 //
 // Note that a player may have the right to capture en passant even if they
 // cannot legally make the corresponding move.
 type EnPassant uint8
 
-// Exists returns true if the player has the right to capture en passant.
+// Square returns the square where the right to capture en passant exists, if
+// any.
+func (e *EnPassant) Square() (Square, bool) {
+	return Square(*e), e.Exists()
+}
+
+// Exists returns true if the right to capture en passant exists.
 func (e *EnPassant) Exists() bool {
 	return *e != 0
 }
 
-// IsDestination returns true if the move that corresponds to the player's right
-// to capture en passant involves placing a pawn on s.
-func (e *EnPassant) IsDestination(s Square) bool {
-	d, ok := e.Destination()
-	return ok && s == d
+// ExistsAt returns true if the right to capture en passant exists at s.
+func (e *EnPassant) ExistsAt(s Square) bool {
+	v, ok := e.Square()
+	return ok && s == v
 }
 
-// IsCaptureSquare returns true if the move that corresponds to the player's
-// right to capture en passant involves capturing a pawn on s.
-func (e *EnPassant) IsCaptureSquare(s Square) bool {
-	c, ok := e.CaptureSquare()
-	return ok && s == c
-}
-
-func (e *EnPassant) Destination() (Square, bool) {
-	return Square(*e), e.Exists()
-}
-
-func (e *EnPassant) CaptureSquare() (Square, bool) {
-	d, ok := e.Destination()
-	if !ok {
-		return 0, false
-	}
-
-	if d.Rank() == Rank3 {
-		return d.Above()
-	}
-	return d.Below()
-}
-
+// Set sets the right to capture en passant at s.
 func (e *EnPassant) Set(s Square) {
 	*e = EnPassant(s)
 }
@@ -399,18 +382,22 @@ type Move struct {
 	promotion PieceType
 }
 
+// From returns the square the moved piece, or king if castling, departs from.
 func (m Move) From() Square {
 	return m.from
 }
 
+// To returns the square the moved piece, or king if castling, lands on.
 func (m Move) To() Square {
 	return m.to
 }
 
+// IsPromotion returns true if the move is a promotion move.
 func (m Move) IsPromotion() bool {
 	return m.promotion != Pawn
 }
 
+// PromotionTo returns the piece type that the moved piece promotes to, if any.
 func (m Move) PromotionTo() (PieceType, bool) {
 	return m.promotion, m.IsPromotion()
 }
