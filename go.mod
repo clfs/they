@@ -1,6 +1,6 @@
 module github.com/clfs/they
 
-go 1.25.3
+go 1.25.4
 
 tool honnef.co/go/tools/cmd/staticcheck
 
