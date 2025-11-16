@@ -19,10 +19,12 @@ type Position struct {
 	// The number of plies since the start of the game.
 	Plies uint16
 
-	// The number of plies since the most recent capture or pawn advance. If no
-	// captures or pawn advances have occurred, this is the number of plies
-	// since the start of the game.
-	FiftyMoveRule uint8
+	// A ply counter used to address the 50-move rule (FIDE Laws of Chess §9.3)
+	// and 75-move rule (§9.6.2).
+	//
+	// If a ply is a capture or pawn move, the counter is reset to zero.
+	// Otherwise, the counter is incremented.
+	HalfmoveClock uint8
 }
 
 // NewPosition returns the starting position.
@@ -62,9 +64,9 @@ func (p *Position) Move(m Move) {
 	if isEnPassantCapture {
 		s, _ := p.EnPassant.Square()
 		if isWhiteTurn {
-			s, _ = s.Below()
+			s, _ = s.Down()
 		} else {
-			s, _ = s.Above()
+			s, _ = s.Up()
 		}
 		p.Board.Clear(s)
 	}
@@ -113,9 +115,9 @@ func (p *Position) Move(m Move) {
 	if isDoublePawnPush {
 		var s Square
 		if isWhiteTurn {
-			s, _ = from.Above()
+			s, _ = from.Up()
 		} else {
-			s, _ = from.Below()
+			s, _ = from.Down()
 		}
 		p.EnPassant.Set(s)
 	} else {
@@ -159,13 +161,34 @@ func (p *Position) Move(m Move) {
 	// Increment the ply count.
 	p.Plies++
 
-	// Update the fifty move rule counter.
+	// Update the halfmove clock.
 	if isCapture || isPawnMove {
-		p.FiftyMoveRule = 0
+		p.HalfmoveClock = 0
 	} else {
-		p.FiftyMoveRule++
+		p.HalfmoveClock++
 	}
 
 	// Finish the turn.
 	p.Turn = p.Turn.Other()
+}
+
+// Moves returns all likely legal moves in the position.
+//
+// If there are no legal moves in the position, Moves returns nil.
+//
+// Moves does not account for:
+//   - Dead positions (FIDE Laws of Chess §5.2.2)
+//   - Threefold repetition (§9.2.2)
+//   - Fivefold repetition (§9.6.1)
+func (p *Position) Moves() []Move {
+	// If the halfmove clock is 75 or greater, there are no legal moves. The
+	// cutoff is 75, rather than 50, since the 50-move rule (FIDE Laws of Chess
+	// §9.3) involves an optional claim and the 75-move rule (§9.6.2) does not.
+	//
+	// TODO(clfs): Reword.
+	if p.HalfmoveClock >= 75 {
+		return nil
+	}
+
+	return nil
 }

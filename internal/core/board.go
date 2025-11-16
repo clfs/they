@@ -126,3 +126,27 @@ func (b *Board) Clear(s Square) {
 func (b *Board) IsOccupied(s Square) bool {
 	return b.white.Get(s) || b.black.Get(s)
 }
+
+// KingAttacks returns the squares that a king on s attacks.
+func KingAttacks(s Square) Bitboard {
+	var attacks Bitboard
+
+	translations := [][]Direction{
+		{Up},
+		{Up, Right},
+		{Right},
+		{Right, Down},
+		{Down},
+		{Down, Left},
+		{Left},
+		{Left, Up},
+	}
+
+	for _, t := range translations {
+		if v, ok := s.Translate(t...); ok {
+			attacks.Set(v)
+		}
+	}
+
+	return attacks
+}

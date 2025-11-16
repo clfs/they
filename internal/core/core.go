@@ -106,6 +106,19 @@ func NewPiece(c Color, pt PieceType) Piece {
 	}
 }
 
+// Direction represents a direction, like [Up].
+//
+// Directions are always from the viewpoint of [White].
+type Direction uint8
+
+// [Direction] constants.
+const (
+	Up Direction = iota
+	Right
+	Down
+	Left
+)
+
 // File represents a file, like [FileA].
 type File uint8
 
@@ -265,20 +278,58 @@ func (s Square) Bitboard() Bitboard {
 	return Bitboard(1 << s)
 }
 
-// Above returns the square above s, if any.
-func (s Square) Above() (Square, bool) {
+// Up returns the square above s, if any.
+func (s Square) Up() (Square, bool) {
 	if s.Rank() == Rank8 {
 		return 0, false
 	}
 	return s + 8, true
 }
 
-// Below returns the square below s, if any.
-func (s Square) Below() (Square, bool) {
+// Down returns the square below s, if any.
+func (s Square) Down() (Square, bool) {
 	if s.Rank() == Rank1 {
 		return 0, false
 	}
 	return s - 8, true
+}
+
+// Left returns the square left of s, if any.
+func (s Square) Left() (Square, bool) {
+	if s.File() == FileA {
+		return 0, false
+	}
+	return s - 1, true
+}
+
+// Translate translates s in the given directions, if possible.
+func (s Square) Translate(d ...Direction) (Square, bool) {
+	v := s
+	var ok bool
+	for i := range d {
+		switch d[i] {
+		case Up:
+			v, ok = v.Up()
+		case Right:
+			v, ok = v.Right()
+		case Down:
+			v, ok = v.Down()
+		case Left:
+			v, ok = v.Left()
+		}
+		if !ok {
+			return 0, false
+		}
+	}
+	return v, true
+}
+
+// Right returns the square right of s, if any.
+func (s Square) Right() (Square, bool) {
+	if s.File() == FileH {
+		return 0, false
+	}
+	return s + 1, true
 }
 
 // Castling represents a set of castling rights.
